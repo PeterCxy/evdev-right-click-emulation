@@ -45,11 +45,8 @@ void arm_delayed_rclick(struct input_state_t *state, int dev_id) {
     state->pressed_device_id = dev_id;
     // Start the timer; once timeout reached,
     // fire the right click event
-    // TODO: Make the timeout customizable
     timerfd_settime(state->fd_timer, 0, &(struct itimerspec) {
-        .it_value = {
-            .tv_sec = 1,
-        },
+        .it_value = LONG_CLICK_INTERVAL,
     }, NULL);
 }
 

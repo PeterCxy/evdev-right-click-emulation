@@ -1,5 +1,6 @@
 #include <libevdev/libevdev.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -11,6 +12,11 @@
 
 #define DIR_DEV_INPUT "/dev/input"
 #define EVDEV_PREFIX "event"
+
+struct timespec LONG_CLICK_INTERVAL = {
+    .tv_sec = 1,
+    .tv_nsec = 0,
+};
 
 int find_evdev(struct libevdev **devices) {
     DIR *dev_input_fd;
@@ -72,6 +78,19 @@ int find_evdev(struct libevdev **devices) {
 }
 
 int main() {
+    // Try to read some configurable options from env
+    char *env = NULL;
+    if ((env = getenv("LONG_CLICK_INTERVAL")) != NULL) {
+        int ms = atoi(env);
+        int sec = 0;
+        if (ms >= 1000) {
+            sec = ms / 1000;
+            ms = ms % 1000;
+        }
+        LONG_CLICK_INTERVAL.tv_sec = sec;
+        LONG_CLICK_INTERVAL.tv_nsec = ((long) ms) * 1000 * 1000;
+    }
+
     struct libevdev *devices[MAX_TOUCHSCREEN_NUM];
     int device_num;
     if ((device_num = find_evdev(devices)) < 0) {
