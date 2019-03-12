@@ -18,6 +18,10 @@ struct timespec LONG_CLICK_INTERVAL = {
     .tv_nsec = 0,
 };
 
+// Allowed "fuzziness" of a long-press action
+// Finger is considered still if the movement is within this value
+int LONG_CLICK_FUZZ = 100;
+
 int find_evdev(struct libevdev **devices) {
     DIR *dev_input_fd;
     if ((dev_input_fd = opendir(DIR_DEV_INPUT)) == NULL) {
@@ -89,6 +93,10 @@ int main() {
         }
         LONG_CLICK_INTERVAL.tv_sec = sec;
         LONG_CLICK_INTERVAL.tv_nsec = ((long) ms) * 1000 * 1000;
+    }
+
+    if ((env = getenv("LONG_CLICK_FUZZ")) != NULL) {
+        LONG_CLICK_FUZZ = atoi(env);
     }
 
     struct libevdev *devices[MAX_TOUCHSCREEN_NUM];

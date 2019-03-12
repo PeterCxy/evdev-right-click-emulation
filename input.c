@@ -96,8 +96,7 @@ void on_timer_expire(struct input_state_t *state) {
     // Only consider movement within a range to be "still"
     // i.e. if movement is within this value during timeout
     //      , then it is a long click
-    // TODO: Make it customizable
-    if (dx <= 100 && dy <= 100)
+    if (dx <= LONG_CLICK_FUZZ && dy <= LONG_CLICK_FUZZ)
         uinput_send_right_click(state->uinput);
     // In Linux implementation of timerfd, the fd becomes always "readable"
     // after the timeout. So we have to unarm it after we receive the event.
