@@ -22,6 +22,21 @@ struct timespec LONG_CLICK_INTERVAL = {
 // Finger is considered still if the movement is within this value
 int LONG_CLICK_FUZZ = 100;
 
+// Blacklist of touch devices that this program
+// should NOT listen on.
+char *TOUCH_DEVICE_BLACKLIST = NULL;
+
+// Determine if a device name is contained
+// in a "|"-separated device list
+int list_contains(const char *list, const char* name) {
+    char *fname = malloc(strlen(name) + 3);
+    sprintf(fname, "|%s|", name);
+    int ret = list != NULL
+        && strstr(list, fname) != NULL;
+    free(fname);
+    return ret;
+}
+
 int find_evdev(struct libevdev **devices) {
     DIR *dev_input_fd;
     if ((dev_input_fd = opendir(DIR_DEV_INPUT)) == NULL) {
@@ -38,7 +53,6 @@ int find_evdev(struct libevdev **devices) {
     // Loop over /dev/input to find touchscreen
     // There can be multiple touchscreen devices.
     // e.g. a touch screen, two stylus for that screen (like on Surface)
-    // TODO: Support user-defined blacklist (or whitelist)
     while ((dev_input_entry = readdir(dev_input_fd)) != NULL) {
         if (strncmp(EVDEV_PREFIX,
                 dev_input_entry->d_name, strlen(EVDEV_PREFIX)) != 0) {
@@ -64,6 +78,12 @@ int find_evdev(struct libevdev **devices) {
                 && !libevdev_has_event_code(evdev, EV_KEY, BTN_RIGHT)) {
             const char *name = libevdev_get_name(evdev);
             printf("Found touch screen at %s: %s\n", dev_path, name);
+            if (list_contains(TOUCH_DEVICE_BLACKLIST, name)) {
+                printf("Device \"%s\" is blacklisted. skipping.\n", name);
+                // Skip this device. Just jump to the clean-up section
+                // to continue to the next device.
+                goto continue_loop;
+            }
             devices[device_num] = evdev;
             device_num++;
             if (device_num == MAX_TOUCHSCREEN_NUM) {
@@ -71,10 +91,14 @@ int find_evdev(struct libevdev **devices) {
                     MAX_TOUCHSCREEN_NUM, MAX_TOUCHSCREEN_NUM);
                 break;
             }
-        } else {
-            libevdev_free(evdev);
-            close(dev_fd);
+            // Skip the clean-up because we need this device to be open
+            continue;
         }
+
+    continue_loop:
+        // Some clean-up work to do before trying the next device
+        libevdev_free(evdev);
+        close(dev_fd);
     }
 
     closedir(dev_input_fd);
@@ -99,6 +123,11 @@ int main() {
         LONG_CLICK_FUZZ = atoi(env);
     }
 
+    if ((env = getenv("TOUCH_DEVICE_BLACKLIST")) != NULL) {
+        TOUCH_DEVICE_BLACKLIST = malloc(strlen(env) + 3);
+        sprintf(TOUCH_DEVICE_BLACKLIST, "|%s|", env);
+    }
+
     struct libevdev *devices[MAX_TOUCHSCREEN_NUM];
     int device_num;
     if ((device_num = find_evdev(devices)) < 0) {
@@ -110,5 +139,6 @@ int main() {
     }
 
     process_evdev_input(device_num, devices);
+    free(TOUCH_DEVICE_BLACKLIST);
     return 0;
 }
