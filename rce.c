@@ -26,6 +26,10 @@ int LONG_CLICK_FUZZ = 100;
 // should NOT listen on.
 char *TOUCH_DEVICE_BLACKLIST = NULL;
 
+// Whitelist of touch devices that, if present,
+// we should ONLY listen on
+char *TOUCH_DEVICE_WHITELIST = NULL;
+
 // Determine if a device name is contained
 // in a "|"-separated device list
 int list_contains(const char *list, const char* name) {
@@ -78,11 +82,20 @@ int find_evdev(struct libevdev **devices) {
                 && !libevdev_has_event_code(evdev, EV_KEY, BTN_RIGHT)) {
             const char *name = libevdev_get_name(evdev);
             printf("Found touch screen at %s: %s\n", dev_path, name);
-            if (list_contains(TOUCH_DEVICE_BLACKLIST, name)) {
-                printf("Device \"%s\" is blacklisted. skipping.\n", name);
-                // Skip this device. Just jump to the clean-up section
-                // to continue to the next device.
-                goto continue_loop;
+            if (TOUCH_DEVICE_WHITELIST == NULL) {
+                // Blacklist mode
+                if (list_contains(TOUCH_DEVICE_BLACKLIST, name)) {
+                    printf("Device \"%s\" is blacklisted. skipping.\n", name);
+                    // Skip this device. Just jump to the clean-up section
+                    // to continue to the next device.
+                    goto continue_loop;
+                }
+            } else {
+                // Whitelist mode
+                if (!list_contains(TOUCH_DEVICE_WHITELIST, name)) {
+                    printf("Device \"%s\" is not whitelisted. skipping.\n", name);
+                    goto continue_loop;
+                }
             }
             devices[device_num] = evdev;
             device_num++;
@@ -128,6 +141,12 @@ int main() {
         sprintf(TOUCH_DEVICE_BLACKLIST, "|%s|", env);
     }
 
+    if ((env = getenv("TOUCH_DEVICE_WHITELIST")) != NULL) {
+        printf("Note: Whitelist mode is enabled. This overrides the blacklist.\n");
+        TOUCH_DEVICE_WHITELIST = malloc(strlen(env) + 3);
+        sprintf(TOUCH_DEVICE_WHITELIST, "|%s|", env);
+    }
+
     struct libevdev *devices[MAX_TOUCHSCREEN_NUM];
     int device_num;
     if ((device_num = find_evdev(devices)) < 0) {
@@ -140,5 +159,6 @@ int main() {
 
     process_evdev_input(device_num, devices);
     free(TOUCH_DEVICE_BLACKLIST);
+    free(TOUCH_DEVICE_WHITELIST);
     return 0;
 }
