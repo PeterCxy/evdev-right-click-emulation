@@ -44,7 +44,7 @@ int list_contains(const char *list, const char* name) {
 int find_evdev(struct libevdev **devices) {
     DIR *dev_input_fd;
     if ((dev_input_fd = opendir(DIR_DEV_INPUT)) == NULL) {
-        fprintf(stderr, "Unable to open %s", DIR_DEV_INPUT);
+        fprintf(stderr, "Unable to open %s\n", DIR_DEV_INPUT);
         return -1;
     }
 
@@ -100,7 +100,7 @@ int find_evdev(struct libevdev **devices) {
             devices[device_num] = evdev;
             device_num++;
             if (device_num == MAX_TOUCHSCREEN_NUM) {
-                printf("More than %d touchscreens. Only keeping the first %d.",
+                printf("More than %d touchscreens. Only keeping the first %d.\n",
                     MAX_TOUCHSCREEN_NUM, MAX_TOUCHSCREEN_NUM);
                 break;
             }

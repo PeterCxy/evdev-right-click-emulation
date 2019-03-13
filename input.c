@@ -115,7 +115,7 @@ void process_evdev_input(int num, struct libevdev **evdev) {
 
     // Check if uinput device was created
     if (state.uinput == NULL) {
-        fprintf(stderr, "Failed to create uinput device");
+        fprintf(stderr, "Failed to create uinput device\n");
         exit(-1);
         return;
     }
