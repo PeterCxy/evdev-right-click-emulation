@@ -148,6 +148,7 @@ void process_evdev_input(int num, struct libevdev **evdev) {
     }
 
     // Cleanup
+    close(state.fd_timer);
     libevdev_uinput_destroy(state.uinput);
     for (int i = 0; i < num; i++) {
         free_evdev(evdev[i]);
