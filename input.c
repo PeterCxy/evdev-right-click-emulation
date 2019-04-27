@@ -53,6 +53,7 @@ void arm_delayed_rclick(struct input_state_t *state, int dev_id) {
 void unarm_delayed_rclick(struct input_state_t *state) {
     state->pressed_device_id = -1;
     // Force cancel the timer if finger released
+    uinput_send_left_click(state->uinput);
     timerfd_settime(state->fd_timer, 0, &(struct itimerspec) {
         .it_value = {
             .tv_sec = 0,
