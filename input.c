@@ -13,6 +13,8 @@ struct input_state_t {
     int pos_x, pos_y;
     int pressed_pos_x, pressed_pos_y;
     int fd_timer; // The timer used to execute right click on timeout
+    struct timeval curTime;
+    unsigned long touch_down_ms, touch_up_ms, touch_time_ms;
     struct libevdev_uinput *uinput;
 };
 
@@ -40,6 +42,7 @@ int build_fd_set(fd_set *fds, int fd_timer,
 
 void arm_delayed_rclick(struct input_state_t *state, int dev_id) {
     // Record the position where the touch event began
+    
     state->pressed_pos_x = state->pos_x;
     state->pressed_pos_y = state->pos_y;
     state->pressed_device_id = dev_id;
@@ -53,13 +56,29 @@ void arm_delayed_rclick(struct input_state_t *state, int dev_id) {
 void unarm_delayed_rclick(struct input_state_t *state) {
     state->pressed_device_id = -1;
     // Force cancel the timer if finger released
-    uinput_send_left_click(state->uinput);
     timerfd_settime(state->fd_timer, 0, &(struct itimerspec) {
         .it_value = {
             .tv_sec = 0,
             .tv_nsec = 0,
         },
     }, NULL);
+}
+
+void on_touch_off(struct input_state_t *state) {
+    if (state->touch_down_ms > 0 && state->touch_up_ms > 0) {
+        state->touch_time_ms = state->touch_up_ms - state->touch_down_ms;        
+        if ( state->touch_time_ms <= TAP_CLICK_INTERVAL ) {
+            unsigned int dx = abs(state->pos_x - state->pressed_pos_x);
+            unsigned int dy = abs(state->pos_y - state->pressed_pos_y);
+            // Only consider movement within a range to be "still"
+            // i.e. if movement is within this value by the time of tap release
+            if (dx <= LONG_CLICK_FUZZ && dy <= LONG_CLICK_FUZZ){
+                //      , then it is a tap click not a right click
+//                fprintf(stderr, "Tap event - ms:%lu x:%u y:%u \n",state->touch_time_ms,dx,dy);
+                uinput_send_left_click(state->uinput);
+            }
+        } 
+    }
 }
 
 void on_input_event(struct input_state_t *state,
@@ -80,12 +99,19 @@ void on_input_event(struct input_state_t *state,
     } else if (ev->type == EV_KEY && ev->code == BTN_TOUCH) {
         // Touch event
         if (ev->value == 1) {
+            // Get the time for the touch on event
+            gettimeofday(&state->curTime, NULL);
+            state->touch_down_ms = state->curTime.tv_sec*1000+(state->curTime.tv_usec/1000);
             // Schedule a delayed right click event
             // so that if anything happens before the long-press timeout,
             // it can be canceled
             arm_delayed_rclick(state, dev_id);
         } else {
+            // Get the time for the touch off event
+            gettimeofday(&state->curTime, NULL);
+            state->touch_up_ms = state->curTime.tv_sec*1000+(state->curTime.tv_usec/1000);
             // Finger released. It is no longer considered a long-press
+            on_touch_off(state);
             unarm_delayed_rclick(state);
         }
     }

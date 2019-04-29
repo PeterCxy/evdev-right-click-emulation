@@ -18,6 +18,9 @@ struct timespec LONG_CLICK_INTERVAL = {
     .tv_nsec = 0,
 };
 
+// Time allowed for tap on - off action
+int TAP_CLICK_INTERVAL = 250;
+
 // Allowed "fuzziness" of a long-press action
 // Finger is considered still if the movement is within this value
 int LONG_CLICK_FUZZ = 100;
@@ -132,6 +135,10 @@ int main() {
         LONG_CLICK_INTERVAL.tv_nsec = ((long) ms) * 1000 * 1000;
     }
 
+    if ((env = getenv("TAP_CLICK_INTERVAL")) != NULL) {
+        TAP_CLICK_INTERVAL = atoi(env);
+    }
+    
     if ((env = getenv("LONG_CLICK_FUZZ")) != NULL) {
         LONG_CLICK_FUZZ = atoi(env);
     }
