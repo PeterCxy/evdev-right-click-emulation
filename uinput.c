@@ -4,11 +4,9 @@
 struct libevdev_uinput *uinput_initialize() {
     // Create a evdev first to describe the features
     struct libevdev *evdev = libevdev_new();
-    libevdev_set_name(evdev, "Simulated Right Button");
+    libevdev_set_name(evdev, "Evdev touch input");
     libevdev_enable_event_type(evdev, EV_KEY);
     libevdev_enable_event_code(evdev, EV_KEY, BTN_RIGHT, NULL);
-    libevdev_set_name(evdev, "Simulated Left Button");
-    libevdev_enable_event_type(evdev, EV_KEY);
     libevdev_enable_event_code(evdev, EV_KEY, BTN_LEFT, NULL);
     // Initialize uinput device from the evdev descriptor
     struct libevdev_uinput *uinput = NULL;
