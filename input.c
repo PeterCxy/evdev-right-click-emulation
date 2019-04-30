@@ -109,8 +109,9 @@ void on_input_event(struct input_state_t *state,
             // Get the time for the touch off event
             gettimeofday(&state->curTime, NULL);
             state->touch_up_ms = state->curTime.tv_sec*1000+(state->curTime.tv_usec/1000);
-            // Finger released. It is no longer considered a long-press
+            // Try to send left click
             on_touch_off(state);
+            // Tap event done so it is no longer considered a long-press
             unarm_delayed_rclick(state);
         }
     }
