@@ -74,7 +74,6 @@ void on_touch_off(struct input_state_t *state) {
             // i.e. if movement is within this value by the time of tap release
             if (dx <= LONG_CLICK_FUZZ && dy <= LONG_CLICK_FUZZ){
                 //      , then it is a tap click not a right click
-//                fprintf(stderr, "Tap event - ms:%lu x:%u y:%u \n",state->touch_time_ms,dx,dy);
                 uinput_send_left_click(state->uinput);
             }
         } 
