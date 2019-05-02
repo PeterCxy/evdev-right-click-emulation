@@ -7,6 +7,11 @@ It directly reads from `evdev` touchscreen input devices, parses the events, and
 
 This program started as a Python script that I published on [Gist](https://gist.github.com/PeterCxy/b4e256b6b4a133c93c012b9738c557ca). However, the Python binding of `libevdev` had some mysterious bugs, and I thought it was not the best idea to run a Python interpreter to read every input event just to implement a simple feature. Thus I rewrote it in C, which is what is contained in this repository.
 
+evdev-right-click-emulation 2buttons branch
+---
+
+2buttons extends the feature to add a single left click on touch events of less than 250ms i.e. a "tap" this is useful where the touch screen driver (Wacom HID 5113) omits this vital gesture for touch events. Compile from the 2buttons and install as below or if evdev-rce is installed from a distribution repository (Arch AUR) simply replace the evdev-rce executable.   
+
 Dependencies
 ---
 
