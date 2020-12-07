@@ -76,9 +76,7 @@ void on_input_event(struct input_state_t *state,
         } else if (ev->code == ABS_Y || ev->code == ABS_MT_POSITION_Y) {
             state->pos_y = ev->value;
         }
-    } else if (ev->type == EV_KEY && ev->code == BTN_TOUCH) {
-        // Touch event
-        if (ev->value == 1) {
+        if (ev->value != 0) {
             // Schedule a delayed right click event
             // so that if anything happens before the long-press timeout,
             // it can be canceled

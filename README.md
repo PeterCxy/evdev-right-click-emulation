@@ -1,4 +1,11 @@
-evdev-right-click-emulation
+# evdev-right-click-emulation
+## Planet Computers - Cosmo communicator [Linux V3]
+---
+
+*WIP:* Add support for right click on long press for the Cosmo Communicator Frankeinstein of a SmartLaptop by Planet Computers.
+
+
+
 ---
 
 A program that solves the problem of right clicks on Linux devices with a touchscreen. It implements the long-press-to-right-click gesture on Linux touchscreen devices while having no specific requirements on the desktop environment, display server or the distribution, which greatly improves the touch experience for users of Linux distributions.

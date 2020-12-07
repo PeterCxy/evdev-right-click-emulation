@@ -78,7 +78,6 @@ int find_evdev(struct libevdev **devices) {
         // A touchscreen is absolute input, with TOUCH events
         if (libevdev_has_event_type(evdev, EV_ABS)
                 && !libevdev_has_event_type(evdev, EV_REL)
-                && libevdev_has_event_code(evdev, EV_KEY, BTN_TOUCH)
                 && !libevdev_has_event_code(evdev, EV_KEY, BTN_RIGHT)) {
             const char *name = libevdev_get_name(evdev);
             printf("Found touch screen at %s: %s\n", dev_path, name);
