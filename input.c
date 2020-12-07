@@ -13,6 +13,7 @@ struct input_state_t {
     int pos_x, pos_y;
     int pressed_pos_x, pressed_pos_y;
     int fd_timer; // The timer used to execute right click on timeout
+    int pressed;
     struct libevdev_uinput *uinput;
 };
 
@@ -39,6 +40,7 @@ int build_fd_set(fd_set *fds, int fd_timer,
 }
 
 void arm_delayed_rclick(struct input_state_t *state, int dev_id) {
+    state->pressed = 1;
     // Record the position where the touch event began
     state->pressed_pos_x = state->pos_x;
     state->pressed_pos_y = state->pos_y;
@@ -51,6 +53,7 @@ void arm_delayed_rclick(struct input_state_t *state, int dev_id) {
 }
 
 void unarm_delayed_rclick(struct input_state_t *state) {
+    state->pressed = 0;
     state->pressed_device_id = -1;
     // Force cancel the timer if finger released
     timerfd_settime(state->fd_timer, 0, &(struct itimerspec) {
@@ -76,11 +79,12 @@ void on_input_event(struct input_state_t *state,
         } else if (ev->code == ABS_Y || ev->code == ABS_MT_POSITION_Y) {
             state->pos_y = ev->value;
         }
-        if (ev->value != 0) {
+        if (ev->value > 0 && (ev->code == ABS_MT_PRESSURE || ev->code == ABS_PRESSURE)) {
             // Schedule a delayed right click event
             // so that if anything happens before the long-press timeout,
             // it can be canceled
-            arm_delayed_rclick(state, dev_id);
+            if (state->pressed == 0)
+                arm_delayed_rclick(state, dev_id);
         } else {
             // Finger released. It is no longer considered a long-press
             unarm_delayed_rclick(state);

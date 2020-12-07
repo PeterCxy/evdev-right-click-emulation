@@ -4,7 +4,45 @@
 
 *WIP:* Add support for right click on long press for the Cosmo Communicator Frankeinstein of a SmartLaptop by Planet Computers.
 
+Current state:
+- Working mostly
+- Cannot right click twice, you must click somewhere else before long press again
+- Cannot right click on taskbar
 
+## Build
+```
+sudo apt install build-essential libevdev-dev git -y
+git clone git@github.com:m600x/evdev-right-click-emulation.git
+cd evdev-right-click-emulation
+make all
+```
+
+## Run
+```
+out/evdev-rce
+```
+
+## Install as service
+```
+sudo cp out/evdev-rce /usr/local/bin/evdev-rce
+sudo vi /etc/systemd/system/rightclick.service
+```
+
+Content of `/etc/systemd/system/rightclick.service`:
+```
+[Service]
+Type=oneshot
+RemainAfterExit=true
+StandardOutput=journal
+ExecStart=/usr/local/bin/evdev-rce
+[Install]
+WantedBy=default.target
+```
+Reboot using `sudo reboot now`
+
+---
+
+Original readme below
 
 ---
 
