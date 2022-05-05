@@ -10,10 +10,9 @@ This program started as a Python script that I published on [Gist](https://gist.
 Dependencies
 ---
 
-- libevdev
+- libevdev (debian: apt-get install libev-dev)
 - libevdev headers (for development)
-
-And of course `glibc` and your Linux kernel.
+- glibc (debian: apt-get install glibc-source)
 
 Building
 ---
