@@ -16,7 +16,7 @@ $(OUTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(XFLAGS) $^ $(LIBRARIES) -o $@
 
 all: $(TARGET)
 clean:
